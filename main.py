@@ -1,7 +1,5 @@
-from flask import Flask, render_template, redirect, request, abort, Blueprint
+from flask import Flask
 
-from data.jobs import Job
-from data.users import User
 from data import db_session
 from api.main import api
 

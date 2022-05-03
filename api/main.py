@@ -1,4 +1,4 @@
-from flask import Flask, render_template, redirect, request, abort, Blueprint, jsonify
+from flask import Flask, render_template, redirect, request, abort, Blueprint, jsonify, make_response
 
 from data.jobs import Job
 from data.users import User
@@ -6,6 +6,11 @@ from data import db_session
 
 
 api = Blueprint('api', __name__, url_prefix='/api')
+
+
+@api.app_errorhandler(404)
+def not_found(error):
+    return make_response(jsonify({'error': 'Not found'}), 404)
 
 
 @api.get('/jobs')
