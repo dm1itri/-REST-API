@@ -26,7 +26,7 @@ def get_jobs():
     )
 
 
-@api.get('/job/<int:id>')
+@api.get('/jobs/<int:id>')
 def get_job(id):
     db_sess = db_session.create_session()
     job = db_sess.query(Job).filter(Job.id == id).first()
@@ -35,4 +35,24 @@ def get_job(id):
             {'job': job.to_dict(only=('title', 'team_leader_id', 'work_size', 'collaborators', 'is_finished', 'user_created.name'))}
         )
     return jsonify({'job': f'Job with id={id} not found'})
+
+
+@api.post('/jobs')
+def create_job():
+    if not request.json:
+        return jsonify({'error': 'Empty request'})
+    elif not all(key in request.json for key in ['title', 'team_leader_id', 'work_size', 'collaborators', 'is_finished', 'user_created']):
+        return jsonify({'error': 'Bad request'})
+    db_sess = db_session.create_session()
+    job = Job(
+        title=request.json['title'],
+        team_leader_id=request.json['team_leader_id'],
+        work_size=request.json['work_size'],
+        collaborators=request.json['collaborators'],
+        is_finished=request.json['is_finished'],
+        user_created=request.json['user_created']
+    )
+    db_sess.add(job)
+    db_sess.commit()
+    return jsonify({'success': 'OK'})
 
