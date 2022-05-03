@@ -59,3 +59,13 @@ def create_job():
     db_sess.commit()
     return jsonify({'success': 'OK'})
 
+
+@api.delete('/jobs/<int:id>')
+def delete_news(id):
+    db_sess = db_session.create_session()
+    news = db_sess.query(Job).get(id)
+    if not news:
+        return jsonify({'error': 'Not found'})
+    db_sess.delete(news)
+    db_sess.commit()
+    return jsonify({'success': 'OK'})
