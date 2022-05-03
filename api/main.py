@@ -1,4 +1,4 @@
-from flask import Flask, render_template, redirect, request, abort, Blueprint, jsonify, make_response
+from flask import request, Blueprint, jsonify, make_response
 
 from data.jobs import Job
 from data.users import User
@@ -61,11 +61,33 @@ def create_job():
 
 
 @api.delete('/jobs/<int:id>')
-def delete_news(id):
+def delete_job(id):
     db_sess = db_session.create_session()
     news = db_sess.query(Job).get(id)
     if not news:
         return jsonify({'error': 'Not found'})
     db_sess.delete(news)
+    db_sess.commit()
+    return jsonify({'success': 'OK'})
+
+
+@api.put('jobs/<int:id>')
+def edit_job(id):
+    if not request.json:
+        return jsonify({'error': 'Empty request'})
+    elif not all(key in request.json for key in ['id', 'title', 'team_leader_id', 'work_size', 'collaborators', 'is_finished', 'user_created']):
+        return jsonify({'error': 'Bad request'})
+    db_sess = db_session.create_session()
+    job = db_sess.query(Job).get(request.json['id'])
+    if not job:
+        return jsonify({'error': 'Id not exists'})
+
+    job.id = request.json['id'],
+    job.title = request.json['title'],
+    job.team_leader_id = request.json['team_leader_id'],
+    job.work_size = request.json['work_size'],
+    job.collaborators = request.json['collaborators'],
+    job.is_finished = request.json['is_finished'],
+    job.user_created = request.json['user_created']
     db_sess.commit()
     return jsonify({'success': 'OK'})
