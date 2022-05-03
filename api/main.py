@@ -75,19 +75,17 @@ def delete_job(id):
 def edit_job(id):
     if not request.json:
         return jsonify({'error': 'Empty request'})
-    elif not all(key in request.json for key in ['id', 'title', 'team_leader_id', 'work_size', 'collaborators', 'is_finished', 'user_created']):
+    elif not all(key in request.json for key in ['title', 'team_leader_id', 'work_size', 'collaborators', 'is_finished', 'user_created']):
         return jsonify({'error': 'Bad request'})
     db_sess = db_session.create_session()
-    job = db_sess.query(Job).get(request.json['id'])
+    job = db_sess.query(Job).get(id)
     if not job:
         return jsonify({'error': 'Id not exists'})
-
-    job.id = request.json['id'],
-    job.title = request.json['title'],
-    job.team_leader_id = request.json['team_leader_id'],
-    job.work_size = request.json['work_size'],
-    job.collaborators = request.json['collaborators'],
-    job.is_finished = request.json['is_finished'],
+    job.title = request.json['title']
+    job.team_leader_id = request.json['team_leader_id']
+    job.work_size = request.json['work_size']
+    job.collaborators = request.json['collaborators']
+    job.is_finished = request.json['is_finished']
     job.user_created = request.json['user_created']
     db_sess.commit()
     return jsonify({'success': 'OK'})
