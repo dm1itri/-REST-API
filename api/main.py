@@ -20,7 +20,7 @@ def get_jobs():
     return jsonify(
         {
             'jobs':
-                [item.to_dict(only=('title', 'team_leader_id', 'work_size', 'collaborators', 'is_finished', 'user_created.name'))
+                [item.to_dict(only=('id', 'title', 'team_leader_id', 'work_size', 'collaborators', 'is_finished', 'user_created.name'))
                  for item in jobs]
         }
     )
@@ -32,7 +32,7 @@ def get_job(id):
     job = db_sess.query(Job).filter(Job.id == id).first()
     if job:
         return jsonify(
-            {'job': job.to_dict(only=('title', 'team_leader_id', 'work_size', 'collaborators', 'is_finished', 'user_created.name'))}
+            {f'job {id}': job.to_dict(only=('title', 'team_leader_id', 'work_size', 'collaborators', 'is_finished', 'user_created.name'))}
         )
     return jsonify({'job': f'Job with id={id} not found'})
 
@@ -41,10 +41,13 @@ def get_job(id):
 def create_job():
     if not request.json:
         return jsonify({'error': 'Empty request'})
-    elif not all(key in request.json for key in ['title', 'team_leader_id', 'work_size', 'collaborators', 'is_finished', 'user_created']):
+    elif not all(key in request.json for key in ['id', 'title', 'team_leader_id', 'work_size', 'collaborators', 'is_finished', 'user_created']):
         return jsonify({'error': 'Bad request'})
     db_sess = db_session.create_session()
+    if db_sess.query(Job).filter(Job.id == request.json['id']).first():
+        return jsonify({'error': 'Id already exists'})
     job = Job(
+        id=request.json['id'],
         title=request.json['title'],
         team_leader_id=request.json['team_leader_id'],
         work_size=request.json['work_size'],
