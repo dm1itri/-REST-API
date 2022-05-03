@@ -9,7 +9,7 @@ api = Blueprint('api', __name__, url_prefix='/api')
 
 
 @api.get('/jobs')
-def jobs():
+def get_jobs():
     db_sess = db_session.create_session()
     jobs = db_sess.query(Job).all()
     return jsonify(
@@ -19,3 +19,15 @@ def jobs():
                  for item in jobs]
         }
     )
+
+
+@api.get('/job/<int:id>')
+def get_job(id):
+    db_sess = db_session.create_session()
+    job = db_sess.query(Job).filter(Job.id == id).first()
+    if job:
+        return jsonify(
+            {'job': job.to_dict(only=('title', 'team_leader_id', 'work_size', 'collaborators', 'is_finished', 'user_created.name'))}
+        )
+    return jsonify({'job': f'Job with id={id} not found'})
+
