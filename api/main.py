@@ -63,15 +63,15 @@ def create_job():
 @api.delete('/jobs/<int:id>')
 def delete_job(id):
     db_sess = db_session.create_session()
-    news = db_sess.query(Job).get(id)
-    if not news:
+    job = db_sess.query(Job).get(id)
+    if not job:
         return jsonify({'error': 'Not found'})
-    db_sess.delete(news)
+    db_sess.delete(job)
     db_sess.commit()
     return jsonify({'success': 'OK'})
 
 
-@api.put('jobs/<int:id>')
+@api.put('/jobs/<int:id>')
 def edit_job(id):
     if not request.json:
         return jsonify({'error': 'Empty request'})
@@ -87,5 +87,79 @@ def edit_job(id):
     job.collaborators = request.json['collaborators']
     job.is_finished = request.json['is_finished']
     job.user_created = request.json['user_created']
+    db_sess.commit()
+    return jsonify({'success': 'OK'})
+
+
+@api.get('/users')
+def get_users():
+    db_sess = db_session.create_session()
+    users = db_sess.query(User).all()
+    return jsonify(
+        {
+            'users':
+                [item.to_dict(only=('id', 'name', 'about', 'email', 'created_date'))
+                 for item in users]
+        }
+    )
+
+
+@api.get('/users/<int:id>')
+def get_user(id):
+    db_sess = db_session.create_session()
+    user = db_sess.query(User).filter(User.id == id).first()
+    if user:
+        return jsonify(
+            {f'User {id}': user.to_dict(only=('name', 'about', 'email', 'created_date'))}
+        )
+    return jsonify({'user': f'User with id={id} not found'})
+
+
+@api.post('/users')
+def create_user():
+    if not request.json:
+        return jsonify({'error': 'Empty request'})
+    elif not all(key in request.json for key in ['id', 'name', 'about', 'email', 'password']):
+        return jsonify({'error': 'Bad request'})
+    db_sess = db_session.create_session()
+    if db_sess.query(User).filter(User.id == request.json['id']).first():
+        return jsonify({'error': 'Id already exists'})
+    user = User(
+        id=request.json['id'],
+        name=request.json['name'],
+        about=request.json['about'],
+        email=request.json['email'],
+    )
+    user.set_password(request.json['password'])
+    db_sess.add(user)
+    db_sess.commit()
+    return jsonify({'success': 'OK'})
+
+
+@api.put('/users/<int:id>')
+def edit_user(id):
+    if not request.json:
+        return jsonify({'error': 'Empty request'})
+    elif not all(key in request.json for key in ['name', 'about', 'email', 'password']):
+        return jsonify({'error': 'Bad request'})
+    db_sess = db_session.create_session()
+    user = db_sess.query(User).get(id)
+    if not user:
+        return jsonify({'error': 'Id not exists'})
+    user.name = request.json['name']
+    user.about = request.json['about']
+    user.email = request.json['email']
+    user.set_password(request.json['password'])
+    db_sess.commit()
+    return jsonify({'success': 'OK'})
+
+
+@api.delete('/users/<int:id>')
+def delete_user(id):
+    db_sess = db_session.create_session()
+    user = db_sess.query(User).get(id)
+    if not user:
+        return jsonify({'error': 'Not found'})
+    db_sess.delete(user)
     db_sess.commit()
     return jsonify({'success': 'OK'})
